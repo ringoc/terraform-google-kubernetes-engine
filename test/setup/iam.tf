@@ -27,7 +27,11 @@ locals {
     "roles/iam.serviceAccountUser",
     "roles/compute.viewer",
     "roles/resourcemanager.projectIamAdmin",
-    "roles/composer.worker"
+    "roles/composer.worker",
+    "roles/gkehub.admin",
+    "roles/iam.serviceAccountKeyAdmin",
+    "roles/serviceusage.serviceUsageAdmin",
+    "roles/editor",
   ]
 }
 
