@@ -29,8 +29,3 @@ variable "zones" {
   description = "The GCP zones to create and test resources in, for applicable tests"
   default     = ["us-central1-a", "us-central1-b", "us-central1-c"]
 }
-
-variable "compute_engine_service_accounts" {
-  type        = list(string)
-  description = "The email addresses of the service account to associate with the GKE cluster"
-}

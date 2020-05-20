@@ -32,12 +32,33 @@ module "asm_install" {
 }
 
 resource "google_service_account" "gke_hub_sa" {
-  account_id   = "gke-hub-sa"
-  display_name = "Service Account"
+  account_id   = var.gke_hub_sa_name
+  display_name = "Service Account for GKE Hub Registration"
 }
 
 resource "google_project_iam_member" "gke_hub_member" {
   project = var.project_id
   role    = "roles/gkehub.connect"
   member  = "serviceAccount:${google_service_account.gke_hub_sa.email}"
+}
+
+resource "google_service_account_key" "gke_hub_key" {
+  service_account_id = google_service_account.gke_hub_sa.name
+}
+
+module "gke_hub_registration" {
+  source  = "terraform-google-modules/gcloud/google"
+  version = "~> 1.0"
+
+  platform                          = "linux"
+  gcloud_sdk_version                = "292.0.0"
+  skip_download                     = var.skip_gcloud_download
+  upgrade                           = false
+  use_tf_google_credentials_env_var = true
+  module_depends_on                 = [module.asm_install.wait]
+
+  create_cmd_entrypoint  = "${path.module}/scripts/gke_hub_registration.sh"
+  create_cmd_body        = "${var.gke_hub_membership_name} ${var.location} ${var.cluster_name} ${google_service_account_key.gke_hub_key.private_key}"
+  destroy_cmd_entrypoint = "gcloud"
+  destroy_cmd_body       = "container hub memberships unregister ${var.gke_hub_membership_name} --gke-cluster=${var.location}/${var.cluster_name}"
 }

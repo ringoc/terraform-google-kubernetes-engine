@@ -28,17 +28,19 @@ data "google_project" "project" {
 }
 
 module "gke" {
-  source            = "../../modules/beta-public-cluster/"
-  project_id        = var.project_id
-  name              = "${local.cluster_type}-cluster${var.cluster_name_suffix}"
-  regional          = true
-  region            = var.region
-  network           = var.network
-  subnetwork        = var.subnetwork
-  ip_range_pods     = var.ip_range_pods
-  ip_range_services = var.ip_range_services
-  network_policy    = false
-  cluster_resource_labels={"mesh_id":"proj-${data.google_project.project.number}"}
+  source     = "../../modules/beta-public-cluster/"
+  project_id = var.project_id
+  name       = "${local.cluster_type}-cluster${var.cluster_name_suffix}"
+  regional   = true
+  #TESTING
+  kubernetes_version      = "1.15.11-gke.12"
+  region                  = var.region
+  network                 = var.network
+  subnetwork              = var.subnetwork
+  ip_range_pods           = var.ip_range_pods
+  ip_range_services       = var.ip_range_services
+  network_policy          = false
+  cluster_resource_labels = { "mesh_id" : "proj-${data.google_project.project.number}" }
   node_pools = [
     {
       name         = "asm-node-pool"
