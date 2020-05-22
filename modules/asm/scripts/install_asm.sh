@@ -24,18 +24,25 @@ PROJECT_ID=$1
 CLUSTER_NAME=$2
 CLUSTER_LOCATION=$3
 ASM_CHANNEL=$4
-
-if [[ -d ./asm ]]; then
-    echo "Removing kpt asm directory"
-    rm -rf ./asm
-fi
+ASM_RESOURCES="asm-dir"
+BASE_DIR="asm-base-dir"
+mkdir -p $ASM_RESOURCES
+pushd $ASM_RESOURCES
 gcloud config set project ${PROJECT_ID}
-# gcloud auth list
-gcloud services enable meshca.googleapis.com
-kpt pkg get https://github.com/GoogleCloudPlatform/anthos-service-mesh-packages.git/asm .
-kpt cfg set asm gcloud.core.project ${PROJECT_ID}
-kpt cfg set asm cluster-name ${CLUSTER_NAME}
-kpt cfg set asm gcloud.compute.zone ${CLUSTER_LOCATION}
-kpt cfg set asm gcloud.container.cluster.releaseChannel ${ASM_CHANNEL}
-anthoscli apply -f asm
+if [[ -d ./asm-patch ]]; then
+    echo "ASM patch directory exists. Skipping download..."
+else
+    echo "Downloading ASM patch"
+    kpt pkg get https://github.com/GoogleCloudPlatform/anthos-service-mesh-packages.git/asm-patch@release-1.5-asm .
+fi
+anthoscli export -c ${CLUSTER_NAME} -o ${BASE_DIR} -p ${PROJECT_ID} -l ${CLUSTER_LOCATION}
+kpt cfg set asm-patch/ base-dir ../${BASE_DIR}
+kpt cfg set asm-patch/ gcloud.core.project ${PROJECT_ID}
+kpt cfg set asm-patch/ gcloud.container.cluster ${CLUSTER_NAME}
+kpt cfg set asm-patch/ gcloud.compute.location ${CLUSTER_LOCATION}
+kpt cfg list-setters asm-patch/
+pushd ${BASE_DIR} && kustomize create --autodetect --namespace ${PROJECT_ID} && popd
+pushd asm-patch && kustomize build -o ../${BASE_DIR}/all.yaml && popd
+kpt fn source ${BASE_DIR} | kpt fn run --image gcr.io/kustomize-functions/validate-asm:v0.1.0
+anthoscli apply -f ${BASE_DIR}
 kubectl wait --for=condition=available --timeout=600s deployment --all -n istio-system

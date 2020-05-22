@@ -33,7 +33,7 @@ module "gke" {
   name       = "${local.cluster_type}-cluster${var.cluster_name_suffix}"
   regional   = true
   #TESTING
-  kubernetes_version      = "1.15.11-gke.12"
+  release_channel         = "REGULAR"
   region                  = var.region
   network                 = var.network
   subnetwork              = var.subnetwork
@@ -45,7 +45,7 @@ module "gke" {
     {
       name         = "asm-node-pool"
       machine_type = "n1-standard-4"
-      min_count    = 2
+      min_count    = 6
     },
   ]
 }
