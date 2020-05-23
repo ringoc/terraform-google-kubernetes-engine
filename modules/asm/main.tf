@@ -14,21 +14,31 @@
  * limitations under the License.
  */
 
+data "google_container_cluster" "primary" {
+  name     = var.cluster_name
+  project  = var.project_id
+  location = var.location
+}
+
+data "google_client_config" "default" {
+}
+
 module "asm_install" {
   source  = "terraform-google-modules/gcloud/google"
   version = "~> 1.0"
+  module_depends_on = [var.cluster_endpoint]
 
   platform                          = "linux"
-  gcloud_sdk_version                = "292.0.0"
+  gcloud_sdk_version                = "293.0.0"
   skip_download                     = var.skip_gcloud_download
   upgrade                           = false
   use_tf_google_credentials_env_var = true
   additional_components             = ["kubectl", "kpt", "anthoscli", "alpha"]
 
   create_cmd_entrypoint  = "${path.module}/scripts/install_asm.sh"
-  create_cmd_body        = "${var.project_id} ${var.cluster_name} ${var.location} ${var.asm_release_channel}"
-  destroy_cmd_entrypoint = "gcloud"
-  destroy_cmd_body       = "version"
+  create_cmd_body        = "${var.project_id} ${var.cluster_name} ${var.location}"
+  destroy_cmd_entrypoint = "${path.module}/scripts/kubectl_wrapper.sh"
+  destroy_cmd_body       = "https://${var.cluster_endpoint} ${data.google_client_config.default.access_token} ${data.google_container_cluster.primary.master_auth.0.cluster_ca_certificate} kubectl delete ns istio-system"
 }
 
 resource "google_service_account" "gke_hub_sa" {
@@ -51,7 +61,7 @@ module "gke_hub_registration" {
   version = "~> 1.0"
 
   platform                          = "linux"
-  gcloud_sdk_version                = "292.0.0"
+  gcloud_sdk_version                = "293.0.0"
   skip_download                     = var.skip_gcloud_download
   upgrade                           = false
   use_tf_google_credentials_env_var = true

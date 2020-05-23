@@ -27,7 +27,8 @@ SERVICE_ACCOUNT_KEY=$4
 
 #write temp key, cleanup at exit
 tmp_file=$(mktemp)
+# shellcheck disable=SC2064
 trap "rm -rf $tmp_file" EXIT
-echo ${SERVICE_ACCOUNT_KEY} | base64 --decode > $tmp_file
+echo "${SERVICE_ACCOUNT_KEY}" | base64 --decode > "$tmp_file"
 
-gcloud container hub memberships register ${MEMBERSHIP_NAME} --gke-cluster=${CLUSTER_LOCATION}/${CLUSTER_NAME} --service-account-key-file=${tmp_file} --quiet
+gcloud container hub memberships register "${MEMBERSHIP_NAME}" --gke-cluster="${CLUSTER_LOCATION}"/"${CLUSTER_NAME}" --service-account-key-file="${tmp_file}" --quiet

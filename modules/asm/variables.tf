@@ -19,6 +19,11 @@ variable "cluster_name" {
   type        = string
 }
 
+variable "cluster_endpoint" {
+  description = "The GKE cluster endpoint."
+  type        = string
+}
+
 variable "project_id" {
   description = "The project in which the resource belongs."
   type        = string
@@ -33,12 +38,6 @@ variable "skip_gcloud_download" {
   description = "Whether to skip downloading gcloud (assumes gcloud and kubectl already available outside the module)"
   type        = bool
   default     = true
-}
-
-variable "asm_release_channel" {
-  description = "ASM Release Channel (REGULAR/RAPID/STABLE)"
-  type        = string
-  default     = "REGULAR"
 }
 
 variable "enable_gke_hub_registration" {

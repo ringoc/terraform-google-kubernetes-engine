@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+data "google_project" "project" {
+  project_id = var.project_ids[2]
+}
+
 module "example" {
   source = "../../../examples/simple_regional_with_asm"
 

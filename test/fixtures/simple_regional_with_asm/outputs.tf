@@ -78,3 +78,8 @@ output "service_account" {
   description = "The service account to default running nodes as if not overridden in `node_pools`."
   value       = module.example.service_account
 }
+
+output "project_number" {
+  description = "The project number of the ASM project"
+  value       = data.google_project.project.number
+}

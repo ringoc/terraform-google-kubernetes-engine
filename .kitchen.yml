@@ -221,3 +221,13 @@ suites:
       systems:
         - name: sandbox_enabled
           backend: local
+  - name: "simple_regional_with_asm"
+    driver:
+      root_module_directory: test/fixtures/simple_regional_with_asm
+    verifier:
+      systems:
+        - name: simple_regional_with_asm
+          backend: local
+          controls:
+            - gcloud
+            - kubectl
