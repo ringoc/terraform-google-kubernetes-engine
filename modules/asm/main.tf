@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+locals {
+  gke_hub_sa_key = var.enable_gke_hub_registration ? google_service_account_key.gke_hub_key[0].private_key : ""
+}
+
 data "google_container_cluster" "primary" {
   name     = var.cluster_name
   project  = var.project_id
@@ -42,18 +46,21 @@ module "asm_install" {
 }
 
 resource "google_service_account" "gke_hub_sa" {
+  count        = var.enable_gke_hub_registration ? 1 : 0
   account_id   = var.gke_hub_sa_name
   display_name = "Service Account for GKE Hub Registration"
 }
 
 resource "google_project_iam_member" "gke_hub_member" {
+  count   = var.enable_gke_hub_registration ? 1 : 0
   project = var.project_id
   role    = "roles/gkehub.connect"
-  member  = "serviceAccount:${google_service_account.gke_hub_sa.email}"
+  member  = "serviceAccount:${google_service_account.gke_hub_sa[0].email}"
 }
 
 resource "google_service_account_key" "gke_hub_key" {
-  service_account_id = google_service_account.gke_hub_sa.name
+  count              = var.enable_gke_hub_registration ? 1 : 0
+  service_account_id = google_service_account.gke_hub_sa[0].name
 }
 
 module "gke_hub_registration" {
@@ -64,11 +71,12 @@ module "gke_hub_registration" {
   gcloud_sdk_version                = "293.0.0"
   skip_download                     = var.skip_gcloud_download
   upgrade                           = false
+  enabled                           = var.enable_gke_hub_registration
   use_tf_google_credentials_env_var = true
   module_depends_on                 = [module.asm_install.wait]
 
   create_cmd_entrypoint  = "${path.module}/scripts/gke_hub_registration.sh"
-  create_cmd_body        = "${var.gke_hub_membership_name} ${var.location} ${var.cluster_name} ${google_service_account_key.gke_hub_key.private_key}"
+  create_cmd_body        = "${var.gke_hub_membership_name} ${var.location} ${var.cluster_name} ${local.gke_hub_sa_key}"
   destroy_cmd_entrypoint = "gcloud"
   destroy_cmd_body       = "container hub memberships unregister ${var.gke_hub_membership_name} --gke-cluster=${var.location}/${var.cluster_name}"
 }
