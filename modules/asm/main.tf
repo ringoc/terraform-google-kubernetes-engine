@@ -24,8 +24,8 @@ data "google_client_config" "default" {
 }
 
 module "asm_install" {
-  source  = "terraform-google-modules/gcloud/google"
-  version = "~> 1.0"
+  source            = "terraform-google-modules/gcloud/google"
+  version           = "~> 1.0"
   module_depends_on = [var.cluster_endpoint]
 
   platform                          = "linux"

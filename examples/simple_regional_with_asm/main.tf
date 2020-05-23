@@ -28,10 +28,10 @@ data "google_project" "project" {
 }
 
 module "gke" {
-  source     = "../../modules/beta-public-cluster/"
-  project_id = var.project_id
-  name       = "${local.cluster_type}-cluster${var.cluster_name_suffix}"
-  regional   = true
+  source                  = "../../modules/beta-public-cluster/"
+  project_id              = var.project_id
+  name                    = "${local.cluster_type}-cluster${var.cluster_name_suffix}"
+  regional                = true
   release_channel         = "REGULAR"
   region                  = var.region
   network                 = var.network
@@ -42,22 +42,22 @@ module "gke" {
   cluster_resource_labels = { "mesh_id" : "proj-${data.google_project.project.number}" }
   node_pools = [
     {
-      name         = "asm-node-pool"
-      autoscaling  = false
+      name        = "asm-node-pool"
+      autoscaling = false
       # ASM requires minimum 4 nodes and n1-standard-4
       # As this is a regional cluster we have node_count * 3 = 6 nodes
-      node_count    = 2
+      node_count   = 2
       machine_type = "n1-standard-4"
     },
   ]
 }
 
 module "asm" {
-  source       = "../../modules/asm"
-  cluster_name = module.gke.name
+  source           = "../../modules/asm"
+  cluster_name     = module.gke.name
   cluster_endpoint = module.gke.endpoint
-  project_id   = var.project_id
-  location     = module.gke.location
+  project_id       = var.project_id
+  location         = module.gke.location
 }
 
 data "google_client_config" "default" {
